@@ -16,7 +16,7 @@ export class Camera {
         this.elevation = Math.PI / 6; // Vertical angle
 
         // Target point (what we're looking at)
-        this.target = [32, 0, 32]; // Center of 64x64 chunk
+        this.target = [0, 0, 0]; // Center (origin) - terrain is centered here
 
         // Limits
         this.minDistance = 10.0;
