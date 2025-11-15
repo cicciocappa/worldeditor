@@ -148,6 +148,9 @@ export class Engine {
         this.chunk.terrainDirty = false;
 
         console.log('Engine initialized successfully!');
+        console.log('WebGL Viewport:', this.gl.getParameter(this.gl.VIEWPORT));
+        console.log('WebGL version:', this.gl.getParameter(this.gl.VERSION));
+        console.log('Canvas dimensions:', this.canvas.width, 'x', this.canvas.height);
     }
 
     /**

@@ -105,6 +105,18 @@ export class Camera {
 
         // Combined view-projection
         this.viewProjectionMatrix = Math3D.multiply(this.projectionMatrix, this.viewMatrix);
+
+        // Debug log (first time only)
+        if (!this._logged) {
+            console.log('Camera initialized:');
+            console.log('  Position:', eye);
+            console.log('  Target:', this.target);
+            console.log('  Distance:', this.distance);
+            console.log('  Aspect:', aspect);
+            console.log('  Canvas size:', this.canvas.width, 'x', this.canvas.height);
+            console.log('  View-Projection Matrix:', this.viewProjectionMatrix);
+            this._logged = true;
+        }
     }
 
     /**
