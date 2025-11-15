@@ -151,9 +151,6 @@ export class GridRenderer {
 
         const gl = this.gl;
 
-        // Disable depth writing for grid (draw behind everything)
-        gl.depthMask(false);
-
         gl.useProgram(this.program);
 
         // Set uniforms
@@ -173,9 +170,6 @@ export class GridRenderer {
 
         // Draw axis lines with different colors
         this.renderAxes(camera);
-
-        // Re-enable depth writing
-        gl.depthMask(true);
     }
 
     /**
