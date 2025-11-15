@@ -9,6 +9,7 @@ import { TerrainRenderer } from '../rendering/TerrainRenderer.js';
 import { ObjectRenderer } from '../rendering/ObjectRenderer.js';
 import { OutlineRenderer } from '../rendering/OutlineRenderer.js';
 import { GridRenderer } from '../rendering/GridRenderer.js';
+import { TestRenderer } from '../rendering/TestRenderer.js';
 import { TerrainBrush } from '../tools/TerrainBrush.js';
 import { PlacementTool } from '../tools/PlacementTool.js';
 
@@ -38,6 +39,7 @@ export class Engine {
         this.objectRenderer = null;
         this.outlineRenderer = null;
         this.gridRenderer = null;
+        this.testRenderer = null;
 
         // Tools
         this.terrainBrush = new TerrainBrush();
@@ -129,6 +131,8 @@ export class Engine {
         const outlineFrag = await this.loadShader('shaders/outline.frag');
         const gridVert = await this.loadShader('shaders/grid.vert');
         const gridFrag = await this.loadShader('shaders/grid.frag');
+        const testVert = await this.loadShader('shaders/test.vert');
+        const testFrag = await this.loadShader('shaders/test.frag');
 
         // Initialize renderers
         this.terrainRenderer = new TerrainRenderer(this.gl);
@@ -142,6 +146,9 @@ export class Engine {
 
         this.gridRenderer = new GridRenderer(this.gl);
         await this.gridRenderer.init(gridVert, gridFrag);
+
+        this.testRenderer = new TestRenderer(this.gl);
+        await this.testRenderer.init(testVert, testFrag);
 
         // Generate initial terrain mesh
         this.terrainRenderer.generateMesh(this.chunk);
@@ -248,6 +255,9 @@ export class Engine {
 
         // Clear buffers
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        // 0. Render test triangle FIRST (no transformations, should always be visible)
+        this.testRenderer.render();
 
         // 1. Render grid first (as reference)
         this.gridRenderer.render(this.camera);
