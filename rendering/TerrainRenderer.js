@@ -201,7 +201,10 @@ export class TerrainRenderer {
         gl.useProgram(this.program);
 
         // Set uniforms
+        // Translate terrain to center it at origin (chunk goes from 0-64, we want -32 to +32)
         const modelMatrix = mat4.create();
+        mat4.translate(modelMatrix, modelMatrix, [-32, 0, -32]);
+
         const mvpMatrix = mat4.create();
         mat4.multiply(mvpMatrix, camera.viewProjectionMatrix, modelMatrix);
 
