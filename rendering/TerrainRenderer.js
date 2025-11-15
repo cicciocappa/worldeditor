@@ -3,7 +3,8 @@
  * Creates a grid mesh with flat shading from chunk height data
  */
 
-import { Math3D } from '../utils/Math3D.js';
+// gl-matrix is loaded globally via CDN
+const { mat4, vec3 } = glMatrix;
 
 export class TerrainRenderer {
     constructor(gl) {
@@ -130,16 +131,20 @@ export class TerrainRenderer {
             const i2 = indices[i + 2] * 3;
 
             // Get triangle vertices
-            const v0 = [vertices[i0], vertices[i0 + 1], vertices[i0 + 2]];
-            const v1 = [vertices[i1], vertices[i1 + 1], vertices[i1 + 2]];
-            const v2 = [vertices[i2], vertices[i2 + 1], vertices[i2 + 2]];
+            const v0 = vec3.fromValues(vertices[i0], vertices[i0 + 1], vertices[i0 + 2]);
+            const v1 = vec3.fromValues(vertices[i1], vertices[i1 + 1], vertices[i1 + 2]);
+            const v2 = vec3.fromValues(vertices[i2], vertices[i2 + 1], vertices[i2 + 2]);
 
             // Compute edges
-            const e1 = Math3D.subtract(v1, v0);
-            const e2 = Math3D.subtract(v2, v0);
+            const e1 = vec3.create();
+            const e2 = vec3.create();
+            vec3.subtract(e1, v1, v0);
+            vec3.subtract(e2, v2, v0);
 
             // Cross product for normal
-            const n = Math3D.normalize(Math3D.cross(e1, e2));
+            const n = vec3.create();
+            vec3.cross(n, e1, e2);
+            vec3.normalize(n, n);
 
             // Assign same normal to all three vertices (flat shading)
             flatNormals[i0] = flatNormals[i1] = flatNormals[i2] = n[0];
@@ -196,8 +201,9 @@ export class TerrainRenderer {
         gl.useProgram(this.program);
 
         // Set uniforms
-        const modelMatrix = Math3D.identity();
-        const mvpMatrix = Math3D.multiply(camera.viewProjectionMatrix, modelMatrix);
+        const modelMatrix = mat4.create();
+        const mvpMatrix = mat4.create();
+        mat4.multiply(mvpMatrix, camera.viewProjectionMatrix, modelMatrix);
 
         gl.uniformMatrix4fv(this.uniforms.uModelViewProjection, false, mvpMatrix);
         gl.uniformMatrix4fv(this.uniforms.uModel, false, modelMatrix);

@@ -3,7 +3,8 @@
  * Helps visualize scene orientation and camera position
  */
 
-import { Math3D } from '../utils/Math3D.js';
+// gl-matrix is loaded globally via CDN
+const { mat4 } = glMatrix;
 
 export class GridRenderer {
     constructor(gl) {
@@ -139,8 +140,9 @@ export class GridRenderer {
         gl.useProgram(this.program);
 
         // Set uniforms
-        const modelMatrix = Math3D.identity();
-        const mvpMatrix = Math3D.multiply(camera.viewProjectionMatrix, modelMatrix);
+        const modelMatrix = mat4.create();
+        const mvpMatrix = mat4.create();
+        mat4.multiply(mvpMatrix, camera.viewProjectionMatrix, modelMatrix);
 
         gl.uniformMatrix4fv(this.uniforms.uModelViewProjection, false, mvpMatrix);
         gl.uniform3fv(this.uniforms.uColor, this.gridColor);
@@ -185,8 +187,9 @@ export class GridRenderer {
         gl.enableVertexAttribArray(0);
         gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
 
-        const modelMatrix = Math3D.identity();
-        const mvpMatrix = Math3D.multiply(camera.viewProjectionMatrix, modelMatrix);
+        const modelMatrix = mat4.create();
+        const mvpMatrix = mat4.create();
+        mat4.multiply(mvpMatrix, camera.viewProjectionMatrix, modelMatrix);
         gl.uniformMatrix4fv(this.uniforms.uModelViewProjection, false, mvpMatrix);
 
         // Draw X axis in red
