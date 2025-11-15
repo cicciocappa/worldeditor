@@ -26,9 +26,27 @@ export class GridRenderer {
         // Grid settings
         this.gridSize = 80;      // Total grid size (covers 64x64 chunk + margins)
         this.gridSpacing = 4;    // Spacing between grid lines
-        this.gridColor = [0.3, 0.3, 0.4]; // Dark blue-gray
-        this.axisXColor = [0.8, 0.2, 0.2]; // Red for X axis
-        this.axisZColor = [0.2, 0.2, 0.8]; // Blue for Z axis
+        this.gridY = 0;          // Y position of the grid
+        this.visible = true;     // Grid visibility
+
+        // Color schemes
+        this.colorSchemes = {
+            dark: {
+                grid: [0.3, 0.3, 0.4],  // Dark blue-gray
+                axisX: [0.8, 0.2, 0.2], // Red
+                axisZ: [0.2, 0.2, 0.8]  // Blue
+            },
+            light: {
+                grid: [0.9, 0.9, 0.9],  // Light gray
+                axisX: [1.0, 0.3, 0.3], // Bright red
+                axisZ: [0.3, 0.3, 1.0]  // Bright blue
+            }
+        };
+
+        this.currentColorScheme = 'dark';
+        this.gridColor = this.colorSchemes.dark.grid;
+        this.axisXColor = this.colorSchemes.dark.axisX;
+        this.axisZColor = this.colorSchemes.dark.axisZ;
     }
 
     /**
@@ -127,8 +145,7 @@ export class GridRenderer {
      * Render the grid
      */
     render(camera) {
-        if (!this.program || this.vertexCount === 0) {
-            console.warn('Grid render skipped - program:', !!this.program, 'vertexCount:', this.vertexCount);
+        if (!this.visible || !this.program || this.vertexCount === 0) {
             return;
         }
 
@@ -141,6 +158,8 @@ export class GridRenderer {
 
         // Set uniforms
         const modelMatrix = mat4.create();
+        mat4.translate(modelMatrix, modelMatrix, [0, this.gridY, 0]); // Apply Y offset
+
         const mvpMatrix = mat4.create();
         mat4.multiply(mvpMatrix, camera.viewProjectionMatrix, modelMatrix);
 
@@ -188,6 +207,8 @@ export class GridRenderer {
         gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
 
         const modelMatrix = mat4.create();
+        mat4.translate(modelMatrix, modelMatrix, [0, this.gridY, 0]); // Apply Y offset
+
         const mvpMatrix = mat4.create();
         mat4.multiply(mvpMatrix, camera.viewProjectionMatrix, modelMatrix);
         gl.uniformMatrix4fv(this.uniforms.uModelViewProjection, false, mvpMatrix);
@@ -204,5 +225,31 @@ export class GridRenderer {
         gl.bindVertexArray(null);
         gl.deleteVertexArray(axisVao);
         gl.deleteBuffer(axisBuffer);
+    }
+
+    /**
+     * Set grid visibility
+     */
+    setVisible(visible) {
+        this.visible = visible;
+    }
+
+    /**
+     * Set grid Y position
+     */
+    setGridY(y) {
+        this.gridY = y;
+    }
+
+    /**
+     * Set color scheme (dark or light)
+     */
+    setColorScheme(scheme) {
+        if (this.colorSchemes[scheme]) {
+            this.currentColorScheme = scheme;
+            this.gridColor = this.colorSchemes[scheme].grid;
+            this.axisXColor = this.colorSchemes[scheme].axisX;
+            this.axisZColor = this.colorSchemes[scheme].axisZ;
+        }
     }
 }
