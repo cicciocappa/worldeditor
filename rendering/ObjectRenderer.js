@@ -159,8 +159,8 @@ export class ObjectRenderer {
         const mvpMatrix = Math3D.multiply(camera.viewProjectionMatrix, modelMatrix);
 
         // Set uniforms
-        gl.uniformMatrix4fv(this.uniforms.uModelViewProjection, true, mvpMatrix);
-        gl.uniformMatrix4fv(this.uniforms.uModel, true, modelMatrix);
+        gl.uniformMatrix4fv(this.uniforms.uModelViewProjection, false, mvpMatrix);
+        gl.uniformMatrix4fv(this.uniforms.uModel, false, modelMatrix);
 
         const color = this.objectColors[obj.type] || [0.5, 0.5, 0.5];
         gl.uniform3fv(this.uniforms.uColor, color);
