@@ -8,6 +8,7 @@ import { Chunk } from '../scene/Chunk.js';
 import { TerrainRenderer } from '../rendering/TerrainRenderer.js';
 import { ObjectRenderer } from '../rendering/ObjectRenderer.js';
 import { OutlineRenderer } from '../rendering/OutlineRenderer.js';
+import { GridRenderer } from '../rendering/GridRenderer.js';
 import { TerrainBrush } from '../tools/TerrainBrush.js';
 import { PlacementTool } from '../tools/PlacementTool.js';
 
@@ -36,6 +37,7 @@ export class Engine {
         this.terrainRenderer = null;
         this.objectRenderer = null;
         this.outlineRenderer = null;
+        this.gridRenderer = null;
 
         // Tools
         this.terrainBrush = new TerrainBrush();
@@ -125,6 +127,8 @@ export class Engine {
         const terrainFrag = await this.loadShader('shaders/terrain.frag');
         const outlineVert = await this.loadShader('shaders/outline.vert');
         const outlineFrag = await this.loadShader('shaders/outline.frag');
+        const gridVert = await this.loadShader('shaders/grid.vert');
+        const gridFrag = await this.loadShader('shaders/grid.frag');
 
         // Initialize renderers
         this.terrainRenderer = new TerrainRenderer(this.gl);
@@ -135,6 +139,9 @@ export class Engine {
 
         this.outlineRenderer = new OutlineRenderer(this.gl);
         await this.outlineRenderer.init(outlineVert, outlineFrag);
+
+        this.gridRenderer = new GridRenderer(this.gl);
+        await this.gridRenderer.init(gridVert, gridFrag);
 
         // Generate initial terrain mesh
         this.terrainRenderer.generateMesh(this.chunk);
@@ -239,11 +246,14 @@ export class Engine {
         // Clear buffers
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        // 1. Render outlines (back faces with expanded geometry)
+        // 1. Render grid first (as reference)
+        this.gridRenderer.render(this.camera);
+
+        // 2. Render outlines (back faces with expanded geometry)
         this.outlineRenderer.render(this.terrainRenderer.getBuffers(), this.camera);
         this.objectRenderer.renderOutlines(this.chunk, this.camera, this.outlineRenderer);
 
-        // 2. Render main geometry
+        // 3. Render main geometry
         this.terrainRenderer.render(this.camera);
         this.objectRenderer.render(this.chunk, this.camera);
     }
