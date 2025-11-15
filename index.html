@@ -43,6 +43,27 @@
             <input type="color" id="bg-color" value="#191a26" title="Background Color">
         </div>
 
+        <div class="tool-group">
+            <label>
+                <input type="checkbox" id="show-grid" checked>
+                Show Grid
+            </label>
+        </div>
+
+        <div class="tool-group">
+            <label for="grid-y">Grid Height:</label>
+            <input type="range" id="grid-y" min="-10" max="10" step="0.5" value="0">
+            <span id="grid-y-value">0</span>
+        </div>
+
+        <div class="tool-group">
+            <label for="grid-color">Grid Color:</label>
+            <select id="grid-color">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+            </select>
+        </div>
+
         <div class="tool-group file-ops">
             <button id="save" class="file-btn" title="Save Chunk to JSON">💾 Save</button>
             <button id="load" class="file-btn" title="Load Chunk from JSON">📂 Load</button>

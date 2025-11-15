@@ -19,6 +19,10 @@ export class EditorUI {
             brushRadius: document.getElementById('brush-radius'),
             brushRadiusValue: document.getElementById('brush-radius-value'),
             bgColor: document.getElementById('bg-color'),
+            showGrid: document.getElementById('show-grid'),
+            gridY: document.getElementById('grid-y'),
+            gridYValue: document.getElementById('grid-y-value'),
+            gridColor: document.getElementById('grid-color'),
             save: document.getElementById('save'),
             load: document.getElementById('load'),
             new: document.getElementById('new'),
@@ -72,6 +76,21 @@ export class EditorUI {
         this.elements.bgColor.addEventListener('input', (e) => {
             const hex = e.target.value;
             this.engine.setClearColor(hex);
+        });
+
+        // Grid controls
+        this.elements.showGrid.addEventListener('change', (e) => {
+            this.engine.gridRenderer.setVisible(e.target.checked);
+        });
+
+        this.elements.gridY.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            this.elements.gridYValue.textContent = value.toFixed(1);
+            this.engine.gridRenderer.setGridY(value);
+        });
+
+        this.elements.gridColor.addEventListener('change', (e) => {
+            this.engine.gridRenderer.setColorScheme(e.target.value);
         });
 
         // File operations
