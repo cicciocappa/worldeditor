@@ -142,7 +142,7 @@ export class GridRenderer {
         const modelMatrix = Math3D.identity();
         const mvpMatrix = Math3D.multiply(camera.viewProjectionMatrix, modelMatrix);
 
-        gl.uniformMatrix4fv(this.uniforms.uModelViewProjection, false, mvpMatrix);
+        gl.uniformMatrix4fv(this.uniforms.uModelViewProjection, true, mvpMatrix);
         gl.uniform3fv(this.uniforms.uColor, this.gridColor);
 
         // Draw grid lines
@@ -187,7 +187,7 @@ export class GridRenderer {
 
         const modelMatrix = Math3D.identity();
         const mvpMatrix = Math3D.multiply(camera.viewProjectionMatrix, modelMatrix);
-        gl.uniformMatrix4fv(this.uniforms.uModelViewProjection, false, mvpMatrix);
+        gl.uniformMatrix4fv(this.uniforms.uModelViewProjection, true, mvpMatrix);
 
         // Draw X axis in red
         gl.uniform3fv(this.uniforms.uColor, this.axisXColor);

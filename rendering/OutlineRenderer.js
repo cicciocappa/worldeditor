@@ -82,7 +82,7 @@ export class OutlineRenderer {
         const model = modelMatrix || Math3D.identity();
         const mvpMatrix = Math3D.multiply(camera.viewProjectionMatrix, model);
 
-        gl.uniformMatrix4fv(this.uniforms.uModelViewProjection, false, mvpMatrix);
+        gl.uniformMatrix4fv(this.uniforms.uModelViewProjection, true, mvpMatrix);
         gl.uniform1f(this.uniforms.uOutlineWidth, this.outlineWidth);
         gl.uniform3fv(this.uniforms.uOutlineColor, this.outlineColor);
 

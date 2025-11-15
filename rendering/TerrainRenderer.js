@@ -199,8 +199,8 @@ export class TerrainRenderer {
         const modelMatrix = Math3D.identity();
         const mvpMatrix = Math3D.multiply(camera.viewProjectionMatrix, modelMatrix);
 
-        gl.uniformMatrix4fv(this.uniforms.uModelViewProjection, false, mvpMatrix);
-        gl.uniformMatrix4fv(this.uniforms.uModel, false, modelMatrix);
+        gl.uniformMatrix4fv(this.uniforms.uModelViewProjection, true, mvpMatrix);
+        gl.uniformMatrix4fv(this.uniforms.uModel, true, modelMatrix);
         gl.uniform3fv(this.uniforms.uColor, this.color);
         gl.uniform3f(this.uniforms.uLightDir, 0.5, 0.7, 0.3); // Directional light
 
