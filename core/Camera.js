@@ -3,7 +3,8 @@
  * Provides smooth camera movement for 3D scene navigation
  */
 
-import { Math3D } from '../utils/Math3D.js';
+// gl-matrix is loaded globally via CDN
+const { mat4, vec3 } = glMatrix;
 
 export class Camera {
     constructor(canvas) {
@@ -29,9 +30,9 @@ export class Camera {
         this.far = 1000.0;
 
         // Computed matrices
-        this.viewMatrix = Math3D.identity();
-        this.projectionMatrix = Math3D.identity();
-        this.viewProjectionMatrix = Math3D.identity();
+        this.viewMatrix = mat4.create();
+        this.projectionMatrix = mat4.create();
+        this.viewProjectionMatrix = mat4.create();
 
         this.updateMatrices();
     }
@@ -75,9 +76,16 @@ export class Camera {
     pan(deltaX, deltaY) {
         // Get camera right and up vectors
         const pos = this.getPosition();
-        const forward = Math3D.normalize(Math3D.subtract(this.target, pos));
-        const right = Math3D.normalize(Math3D.cross(forward, [0, 1, 0]));
-        const up = Math3D.cross(right, forward);
+        const forward = vec3.create();
+        vec3.subtract(forward, this.target, pos);
+        vec3.normalize(forward, forward);
+
+        const right = vec3.create();
+        vec3.cross(right, forward, [0, 1, 0]);
+        vec3.normalize(right, right);
+
+        const up = vec3.create();
+        vec3.cross(up, right, forward);
 
         // Move target
         const panSpeed = this.distance * 0.001;
@@ -96,19 +104,19 @@ export class Camera {
         const aspect = this.canvas.width / this.canvas.height;
 
         // Compute projection matrix
-        this.projectionMatrix = Math3D.perspective(this.fov, aspect, this.near, this.far);
+        mat4.perspective(this.projectionMatrix, this.fov, aspect, this.near, this.far);
 
         // Compute view matrix
         const eye = this.getPosition();
         const up = [0, 1, 0];
-        this.viewMatrix = Math3D.lookAt(eye, this.target, up);
+        mat4.lookAt(this.viewMatrix, eye, this.target, up);
 
         // Combined view-projection
-        this.viewProjectionMatrix = Math3D.multiply(this.projectionMatrix, this.viewMatrix);
+        mat4.multiply(this.viewProjectionMatrix, this.projectionMatrix, this.viewMatrix);
 
         // Debug log (first time only)
         if (!this._logged) {
-            console.log('Camera initialized:');
+            console.log('Camera initialized (gl-matrix):');
             console.log('  Position:', eye);
             console.log('  Target:', this.target);
             console.log('  Distance:', this.distance);
@@ -145,15 +153,23 @@ export class Camera {
 
         // Transform to world space
         const pos = this.getPosition();
-        const forward = Math3D.normalize(Math3D.subtract(this.target, pos));
-        const right = Math3D.normalize(Math3D.cross(forward, [0, 1, 0]));
-        const up = Math3D.cross(right, forward);
+        const forward = vec3.create();
+        vec3.subtract(forward, this.target, pos);
+        vec3.normalize(forward, forward);
 
-        const rayDir = Math3D.normalize([
+        const right = vec3.create();
+        vec3.cross(right, forward, [0, 1, 0]);
+        vec3.normalize(right, right);
+
+        const up = vec3.create();
+        vec3.cross(up, right, forward);
+
+        const rayDir = vec3.fromValues(
             right[0] * rayViewX + up[0] * rayViewY + forward[0] * rayViewZ,
             right[1] * rayViewX + up[1] * rayViewY + forward[1] * rayViewZ,
             right[2] * rayViewX + up[2] * rayViewY + forward[2] * rayViewZ
-        ]);
+        );
+        vec3.normalize(rayDir, rayDir);
 
         return {
             origin: pos,

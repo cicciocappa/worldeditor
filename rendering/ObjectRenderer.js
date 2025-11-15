@@ -3,7 +3,9 @@
  * Uses the same shader as terrain for consistency
  */
 
-import { Math3D } from '../utils/Math3D.js';
+// gl-matrix is loaded globally via CDN
+const { mat4 } = glMatrix;
+
 import { MeshGenerator } from '../utils/MeshGenerator.js';
 
 export class ObjectRenderer {
@@ -148,15 +150,14 @@ export class ObjectRenderer {
         const gl = this.gl;
 
         // Build model matrix
-        const translation = Math3D.translate(obj.position[0], obj.position[1], obj.position[2]);
-        const rotation = Math3D.rotateY(obj.rotation);
-        const scale = Math3D.scale(obj.scale, obj.scale, obj.scale);
-
-        let modelMatrix = Math3D.multiply(translation, rotation);
-        modelMatrix = Math3D.multiply(modelMatrix, scale);
+        const modelMatrix = mat4.create();
+        mat4.translate(modelMatrix, modelMatrix, obj.position);
+        mat4.rotateY(modelMatrix, modelMatrix, obj.rotation);
+        mat4.scale(modelMatrix, modelMatrix, [obj.scale, obj.scale, obj.scale]);
 
         // Compute MVP
-        const mvpMatrix = Math3D.multiply(camera.viewProjectionMatrix, modelMatrix);
+        const mvpMatrix = mat4.create();
+        mat4.multiply(mvpMatrix, camera.viewProjectionMatrix, modelMatrix);
 
         // Set uniforms
         gl.uniformMatrix4fv(this.uniforms.uModelViewProjection, false, mvpMatrix);
@@ -183,12 +184,10 @@ export class ObjectRenderer {
             if (!mesh) continue;
 
             // Build model matrix
-            const translation = Math3D.translate(obj.position[0], obj.position[1], obj.position[2]);
-            const rotation = Math3D.rotateY(obj.rotation);
-            const scale = Math3D.scale(obj.scale, obj.scale, obj.scale);
-
-            let modelMatrix = Math3D.multiply(translation, rotation);
-            modelMatrix = Math3D.multiply(modelMatrix, scale);
+            const modelMatrix = mat4.create();
+            mat4.translate(modelMatrix, modelMatrix, obj.position);
+            mat4.rotateY(modelMatrix, modelMatrix, obj.rotation);
+            mat4.scale(modelMatrix, modelMatrix, [obj.scale, obj.scale, obj.scale]);
 
             // Render outline
             outlineRenderer.render(mesh, camera, modelMatrix);
