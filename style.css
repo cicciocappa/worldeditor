@@ -1,0 +1,185 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    overflow: hidden;
+}
+
+#toolbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(40, 40, 40, 0.95);
+    padding: 12px 20px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    border-bottom: 2px solid #444;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    flex-wrap: wrap;
+}
+
+.tool-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 0 10px;
+    border-left: 1px solid #555;
+}
+
+.tool-group:first-child {
+    border-left: none;
+}
+
+.tool-btn, .file-btn {
+    padding: 8px 16px;
+    background: #333;
+    border: 2px solid #555;
+    color: #e0e0e0;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.tool-btn:hover, .file-btn:hover {
+    background: #444;
+    border-color: #777;
+    transform: translateY(-1px);
+}
+
+.tool-btn.active {
+    background: #4a90e2;
+    border-color: #5a9ef2;
+    box-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
+}
+
+select {
+    padding: 6px 12px;
+    background: #333;
+    border: 2px solid #555;
+    color: #e0e0e0;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+select:hover {
+    border-color: #777;
+}
+
+input[type="range"] {
+    width: 100px;
+    cursor: pointer;
+}
+
+label {
+    font-size: 13px;
+    color: #bbb;
+    font-weight: 500;
+}
+
+#brush-strength-value,
+#brush-radius-value {
+    min-width: 30px;
+    text-align: center;
+    font-weight: bold;
+    color: #4a90e2;
+}
+
+.info {
+    margin-left: auto;
+    display: flex;
+    gap: 20px;
+    font-size: 13px;
+    color: #888;
+}
+
+#fps {
+    font-family: 'Courier New', monospace;
+    color: #4a90e2;
+}
+
+#mode-info {
+    color: #4a90e2;
+    font-weight: bold;
+}
+
+#gl-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: block;
+    cursor: crosshair;
+}
+
+#instructions {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(30, 30, 30, 0.98);
+    padding: 30px;
+    border-radius: 10px;
+    border: 2px solid #4a90e2;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    max-width: 500px;
+    z-index: 1000;
+}
+
+#instructions h3 {
+    color: #4a90e2;
+    margin-bottom: 15px;
+    font-size: 20px;
+}
+
+#instructions ul {
+    list-style: none;
+    margin-bottom: 20px;
+}
+
+#instructions li {
+    padding: 8px 0;
+    border-bottom: 1px solid #333;
+}
+
+#instructions li:last-child {
+    border-bottom: none;
+}
+
+#instructions strong {
+    color: #4a90e2;
+    display: inline-block;
+    min-width: 150px;
+}
+
+#close-instructions {
+    width: 100%;
+    padding: 10px;
+    background: #4a90e2;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#close-instructions:hover {
+    background: #5a9ef2;
+}
+
+/* Hide instructions after first use */
+.instructions-hidden {
+    display: none;
+}
