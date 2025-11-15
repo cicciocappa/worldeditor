@@ -264,4 +264,17 @@ export class Engine {
     getFPS() {
         return this.fps;
     }
+
+    /**
+     * Set WebGL clear color from hex string
+     */
+    setClearColor(hex) {
+        // Convert hex to RGB (0-1 range)
+        const r = parseInt(hex.substr(1, 2), 16) / 255;
+        const g = parseInt(hex.substr(3, 2), 16) / 255;
+        const b = parseInt(hex.substr(5, 2), 16) / 255;
+
+        this.gl.clearColor(r, g, b, 1.0);
+        console.log(`Clear color set to: ${hex} (${r.toFixed(2)}, ${g.toFixed(2)}, ${b.toFixed(2)})`);
+    }
 }

@@ -18,6 +18,7 @@ export class EditorUI {
             brushStrengthValue: document.getElementById('brush-strength-value'),
             brushRadius: document.getElementById('brush-radius'),
             brushRadiusValue: document.getElementById('brush-radius-value'),
+            bgColor: document.getElementById('bg-color'),
             save: document.getElementById('save'),
             load: document.getElementById('load'),
             new: document.getElementById('new'),
@@ -65,6 +66,12 @@ export class EditorUI {
             const value = parseFloat(e.target.value);
             this.elements.brushRadiusValue.textContent = value.toFixed(1);
             this.engine.terrainBrush.setRadius(value);
+        });
+
+        // Background color picker
+        this.elements.bgColor.addEventListener('input', (e) => {
+            const hex = e.target.value;
+            this.engine.setClearColor(hex);
         });
 
         // File operations
