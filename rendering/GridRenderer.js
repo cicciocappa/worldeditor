@@ -51,9 +51,13 @@ export class GridRenderer {
             return;
         }
 
+        console.log('Grid shader compiled and linked successfully');
+
         // Get uniform locations
         this.uniforms.uModelViewProjection = gl.getUniformLocation(this.program, 'uModelViewProjection');
         this.uniforms.uColor = gl.getUniformLocation(this.program, 'uColor');
+
+        console.log('Grid uniforms:', this.uniforms);
 
         // Create VAO and buffers
         this.vao = gl.createVertexArray();
@@ -74,10 +78,12 @@ export class GridRenderer {
 
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
             console.error('Grid shader compile error:', gl.getShaderInfoLog(shader));
+            console.error('Shader source:', source);
             gl.deleteShader(shader);
             return null;
         }
 
+        console.log('Grid shader compiled:', type === gl.VERTEX_SHADER ? 'VERTEX' : 'FRAGMENT');
         return shader;
     }
 
@@ -102,6 +108,8 @@ export class GridRenderer {
 
         this.vertexCount = vertices.length / 3;
 
+        console.log(`Grid generated: ${this.vertexCount} vertices, ${vertices.length / 6} lines`);
+
         // Upload to GPU
         const gl = this.gl;
         gl.bindVertexArray(this.vao);
@@ -118,7 +126,10 @@ export class GridRenderer {
      * Render the grid
      */
     render(camera) {
-        if (!this.program || this.vertexCount === 0) return;
+        if (!this.program || this.vertexCount === 0) {
+            console.warn('Grid render skipped - program:', !!this.program, 'vertexCount:', this.vertexCount);
+            return;
+        }
 
         const gl = this.gl;
 

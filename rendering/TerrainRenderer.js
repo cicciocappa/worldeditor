@@ -49,6 +49,8 @@ export class TerrainRenderer {
             return;
         }
 
+        console.log('Terrain shader compiled and linked successfully');
+
         // Get uniform locations
         this.uniforms.uModelViewProjection = gl.getUniformLocation(this.program, 'uModelViewProjection');
         this.uniforms.uModel = gl.getUniformLocation(this.program, 'uModel');
@@ -147,6 +149,8 @@ export class TerrainRenderer {
 
         // Upload to GPU
         this.uploadMesh(new Float32Array(vertices), new Float32Array(flatNormals), new Uint16Array(indices));
+
+        console.log(`Terrain mesh generated: ${vertices.length / 3} vertices, ${indices.length / 3} triangles`);
     }
 
     /**
@@ -182,7 +186,10 @@ export class TerrainRenderer {
      * Render the terrain
      */
     render(camera) {
-        if (!this.program || this.indexCount === 0) return;
+        if (!this.program || this.indexCount === 0) {
+            console.warn('Terrain render skipped - program:', !!this.program, 'indexCount:', this.indexCount);
+            return;
+        }
 
         const gl = this.gl;
 
