@@ -252,6 +252,19 @@ export class EditorUI {
         // Cast ray from camera through mouse position
         const ray = this.engine.camera.screenToRay(x, y);
 
+        // Debug: Log camera and ray info
+        if (Math.random() < 0.016) {
+            const cameraPos = this.engine.camera.getPosition();
+            console.log('=== RAY DEBUG ===');
+            console.log('Screen coords:', x, y);
+            console.log('Canvas size:', this.engine.canvas.width, this.engine.canvas.height);
+            console.log('Camera pos:', cameraPos);
+            console.log('Camera target:', this.engine.camera.target);
+            console.log('Ray origin:', ray.origin);
+            console.log('Ray direction:', ray.direction);
+            console.log('Ray direction Y (should be negative to go down):', ray.direction[1]);
+        }
+
         // Find terrain intersection
         const intersection = this.findTerrainIntersection(ray);
 
