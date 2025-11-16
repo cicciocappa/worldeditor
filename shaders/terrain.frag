@@ -7,6 +7,7 @@ in vec3 vWorldPos;
 
 uniform vec3 uColor;
 uniform vec3 uLightDir; // Directional light direction
+uniform float uAlpha;   // Alpha/transparency (default 1.0)
 
 out vec4 fragColor;
 
@@ -24,5 +25,5 @@ void main() {
     // Apply lighting to base color
     vec3 finalColor = uColor * lighting;
 
-    fragColor = vec4(finalColor, 1.0);
+    fragColor = vec4(finalColor, uAlpha);
 }

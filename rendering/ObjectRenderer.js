@@ -55,6 +55,7 @@ export class ObjectRenderer {
         this.uniforms.uModel = gl.getUniformLocation(this.program, 'uModel');
         this.uniforms.uColor = gl.getUniformLocation(this.program, 'uColor');
         this.uniforms.uLightDir = gl.getUniformLocation(this.program, 'uLightDir');
+        this.uniforms.uAlpha = gl.getUniformLocation(this.program, 'uAlpha');
 
         // Load object meshes
         this.loadMesh('tree_pine', MeshGenerator.generatePineTree());
@@ -140,7 +141,7 @@ export class ObjectRenderer {
     /**
      * Render a single object
      */
-    renderObject(obj, camera) {
+    renderObject(obj, camera, alpha = 1.0) {
         const mesh = this.meshes.get(obj.type);
         if (!mesh) {
             console.warn('Unknown object type:', obj.type);
@@ -148,6 +149,13 @@ export class ObjectRenderer {
         }
 
         const gl = this.gl;
+
+        // Enable blending for transparency
+        const needsBlending = alpha < 1.0;
+        if (needsBlending) {
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        }
 
         // Build model matrix
         // Convert chunk coordinates (0-64) to world coordinates (centered at origin)
@@ -173,11 +181,27 @@ export class ObjectRenderer {
         const color = this.objectColors[obj.type] || [0.5, 0.5, 0.5];
         gl.uniform3fv(this.uniforms.uColor, color);
         gl.uniform3f(this.uniforms.uLightDir, 0.5, 0.7, 0.3);
+        gl.uniform1f(this.uniforms.uAlpha, alpha);
 
         // Draw
         gl.bindVertexArray(mesh.vao);
         gl.drawElements(gl.TRIANGLES, mesh.indexCount, gl.UNSIGNED_SHORT, 0);
         gl.bindVertexArray(null);
+
+        // Disable blending if it was enabled
+        if (needsBlending) {
+            gl.disable(gl.BLEND);
+        }
+    }
+
+    /**
+     * Render preview object (semi-transparent)
+     */
+    renderPreview(previewObj, camera) {
+        if (!previewObj || !previewObj.visible) return;
+
+        const alpha = previewObj.alpha || 0.5;
+        this.renderObject(previewObj, camera, alpha);
     }
 
     /**
