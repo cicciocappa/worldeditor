@@ -183,3 +183,50 @@ label {
 .instructions-hidden {
     display: none;
 }
+
+/* Coordinate debug display */
+#coord-debug {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(30, 30, 30, 0.95);
+    padding: 15px 20px;
+    border-radius: 8px;
+    border: 2px solid #4a90e2;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    z-index: 200;
+    min-width: 200px;
+}
+
+#coord-debug > div {
+    padding: 3px 0;
+}
+
+#coord-debug strong {
+    color: #4a90e2;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+}
+
+#coord-debug span {
+    color: #4a90e2;
+    font-weight: bold;
+    float: right;
+}
+
+#coord-preview-status {
+    color: #4a90e2;
+}
+
+#coord-preview-status.visible {
+    color: #4ae24a;
+}
+
+#coord-preview-status.hidden {
+    color: #e24a4a;
+}

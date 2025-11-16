@@ -29,7 +29,15 @@ export class EditorUI {
             fps: document.getElementById('fps'),
             modeInfo: document.getElementById('mode-info'),
             instructions: document.getElementById('instructions'),
-            closeInstructions: document.getElementById('close-instructions')
+            closeInstructions: document.getElementById('close-instructions'),
+            // Coordinate debug display
+            coordDebug: document.getElementById('coord-debug'),
+            coordChunkX: document.getElementById('coord-chunk-x'),
+            coordChunkZ: document.getElementById('coord-chunk-z'),
+            coordWorldX: document.getElementById('coord-world-x'),
+            coordWorldZ: document.getElementById('coord-world-z'),
+            coordHeight: document.getElementById('coord-height'),
+            coordPreviewStatus: document.getElementById('coord-preview-status')
         };
 
         // Current mode
@@ -152,6 +160,9 @@ export class EditorUI {
         // Update info text
         this.elements.modeInfo.textContent = `Mode: ${mode === 'brush' ? 'Brush' : 'Place'}`;
 
+        // Show/hide coordinate debug display
+        this.elements.coordDebug.style.display = mode === 'place' ? 'block' : 'none';
+
         // Create preview object when entering place mode
         if (mode === 'place') {
             this.createPreviewObject();
@@ -257,8 +268,32 @@ export class EditorUI {
             if (this.previewObject.scale === 1.0) {
                 this.previewObject.scale = 0.9 + Math.random() * 0.2;
             }
+
+            // Update coordinate debug display
+            const chunkX = intersection[0];
+            const chunkZ = intersection[2];
+            const worldX = chunkX - 32;
+            const worldZ = chunkZ - 32;
+            const height = intersection[1];
+
+            this.elements.coordChunkX.textContent = chunkX.toFixed(2);
+            this.elements.coordChunkZ.textContent = chunkZ.toFixed(2);
+            this.elements.coordWorldX.textContent = worldX.toFixed(2);
+            this.elements.coordWorldZ.textContent = worldZ.toFixed(2);
+            this.elements.coordHeight.textContent = height.toFixed(2);
+            this.elements.coordPreviewStatus.textContent = '✓ Visible';
+            this.elements.coordPreviewStatus.className = 'visible';
         } else {
             this.previewObject.visible = false;
+
+            // Update coordinate debug display - no intersection
+            this.elements.coordChunkX.textContent = 'N/A';
+            this.elements.coordChunkZ.textContent = 'N/A';
+            this.elements.coordWorldX.textContent = 'N/A';
+            this.elements.coordWorldZ.textContent = 'N/A';
+            this.elements.coordHeight.textContent = 'N/A';
+            this.elements.coordPreviewStatus.textContent = '✗ Hidden';
+            this.elements.coordPreviewStatus.className = 'hidden';
         }
     }
 
@@ -330,6 +365,12 @@ export class EditorUI {
         const maxDistance = 200;
         const step = 0.5;
 
+        // Debug: Log ray info occasionally (every 60 frames ~= 1 second)
+        if (this.mode === 'place' && Math.random() < 0.016) {
+            console.log('Ray origin:', origin);
+            console.log('Ray direction:', direction);
+        }
+
         for (let t = 0; t < maxDistance; t += step) {
             const worldPoint = [
                 origin[0] + direction[0] * t,
@@ -349,6 +390,11 @@ export class EditorUI {
 
                 // Check if ray intersects terrain
                 if (worldPoint[1] <= terrainHeight) {
+                    // Debug: Log intersection occasionally
+                    if (this.mode === 'place' && Math.random() < 0.016) {
+                        console.log('Terrain intersection found at chunk coords:', [chunkX, terrainHeight, chunkZ]);
+                        console.log('World coords:', worldPoint);
+                    }
                     // Return chunk coordinates for tools to use
                     return [chunkX, terrainHeight, chunkZ];
                 }
@@ -358,11 +404,19 @@ export class EditorUI {
         // Fallback to Y=0 plane intersection, converted to chunk coordinates
         const worldIntersection = this.engine.camera.rayPlaneIntersection(ray, 0);
         if (worldIntersection) {
+            if (this.mode === 'place' && Math.random() < 0.016) {
+                console.log('Y=0 plane intersection:', worldIntersection);
+            }
             return [
                 worldIntersection[0] + 32,
                 worldIntersection[1],
                 worldIntersection[2] + 32
             ];
+        }
+
+        // Debug: Log no intersection occasionally
+        if (this.mode === 'place' && Math.random() < 0.016) {
+            console.log('No intersection found');
         }
         return null;
     }
