@@ -270,27 +270,40 @@ export class EditorUI {
         const step = 0.5;
 
         for (let t = 0; t < maxDistance; t += step) {
-            const point = [
+            const worldPoint = [
                 origin[0] + direction[0] * t,
                 origin[1] + direction[1] * t,
                 origin[2] + direction[2] * t
             ];
 
-            // Check if within chunk bounds
-            if (point[0] >= 0 && point[0] <= this.engine.chunk.size &&
-                point[2] >= 0 && point[2] <= this.engine.chunk.size) {
+            // Convert world coordinates (centered at origin) to chunk coordinates (0-64)
+            const chunkX = worldPoint[0] + 32;
+            const chunkZ = worldPoint[2] + 32;
 
-                const terrainHeight = this.engine.chunk.getHeightAt(point[0], point[2]);
+            // Check if within chunk bounds
+            if (chunkX >= 0 && chunkX <= this.engine.chunk.size &&
+                chunkZ >= 0 && chunkZ <= this.engine.chunk.size) {
+
+                const terrainHeight = this.engine.chunk.getHeightAt(chunkX, chunkZ);
 
                 // Check if ray intersects terrain
-                if (point[1] <= terrainHeight) {
-                    return [point[0], terrainHeight, point[2]];
+                if (worldPoint[1] <= terrainHeight) {
+                    // Return chunk coordinates for tools to use
+                    return [chunkX, terrainHeight, chunkZ];
                 }
             }
         }
 
-        // Fallback to Y=0 plane intersection
-        return this.engine.camera.rayPlaneIntersection(ray, 0);
+        // Fallback to Y=0 plane intersection, converted to chunk coordinates
+        const worldIntersection = this.engine.camera.rayPlaneIntersection(ray, 0);
+        if (worldIntersection) {
+            return [
+                worldIntersection[0] + 32,
+                worldIntersection[1],
+                worldIntersection[2] + 32
+            ];
+        }
+        return null;
     }
 
     /**

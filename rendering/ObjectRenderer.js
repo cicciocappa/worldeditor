@@ -150,8 +150,15 @@ export class ObjectRenderer {
         const gl = this.gl;
 
         // Build model matrix
+        // Convert chunk coordinates (0-64) to world coordinates (centered at origin)
+        const worldPos = [
+            obj.position[0] - 32,
+            obj.position[1],
+            obj.position[2] - 32
+        ];
+
         const modelMatrix = mat4.create();
-        mat4.translate(modelMatrix, modelMatrix, obj.position);
+        mat4.translate(modelMatrix, modelMatrix, worldPos);
         mat4.rotateY(modelMatrix, modelMatrix, obj.rotation);
         mat4.scale(modelMatrix, modelMatrix, [obj.scale, obj.scale, obj.scale]);
 
@@ -184,8 +191,15 @@ export class ObjectRenderer {
             if (!mesh) continue;
 
             // Build model matrix
+            // Convert chunk coordinates (0-64) to world coordinates (centered at origin)
+            const worldPos = [
+                obj.position[0] - 32,
+                obj.position[1],
+                obj.position[2] - 32
+            ];
+
             const modelMatrix = mat4.create();
-            mat4.translate(modelMatrix, modelMatrix, obj.position);
+            mat4.translate(modelMatrix, modelMatrix, worldPos);
             mat4.rotateY(modelMatrix, modelMatrix, obj.rotation);
             mat4.scale(modelMatrix, modelMatrix, [obj.scale, obj.scale, obj.scale]);
 
