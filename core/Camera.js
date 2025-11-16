@@ -4,7 +4,7 @@
  */
 
 // gl-matrix is loaded globally via CDN
-const { mat4, vec3 } = glMatrix;
+const { mat4, vec3, vec4 } = glMatrix;
 
 export class Camera {
     constructor(canvas) {
@@ -139,41 +139,40 @@ export class Camera {
      * Returns ray origin and direction
      */
     screenToRay(screenX, screenY) {
-        const aspect = this.canvas.width / this.canvas.height;
-
         // Normalized device coordinates (-1 to 1)
         const ndcX = (screenX / this.canvas.width) * 2 - 1;
         const ndcY = 1 - (screenY / this.canvas.height) * 2;
 
-        // Ray in view space
-        const tanHalfFov = Math.tan(this.fov / 2);
-        const rayViewX = ndcX * aspect * tanHalfFov;
-        const rayViewY = ndcY * tanHalfFov;
-        const rayViewZ = -1;
+        // Inverse view-projection matrix
+        const invViewProj = mat4.create();
+        mat4.invert(invViewProj, this.viewProjectionMatrix);
+
+        // Near and far points in NDC space
+        const nearPoint = [ndcX, ndcY, -1, 1]; // Near plane
+        const farPoint = [ndcX, ndcY, 1, 1];   // Far plane
 
         // Transform to world space
-        const pos = this.getPosition();
-        const forward = vec3.create();
-        vec3.subtract(forward, this.target, pos);
-        vec3.normalize(forward, forward);
+        const nearWorld = vec4.create();
+        const farWorld = vec4.create();
 
-        const right = vec3.create();
-        vec3.cross(right, forward, [0, 1, 0]);
-        vec3.normalize(right, right);
+        vec4.transformMat4(nearWorld, nearPoint, invViewProj);
+        vec4.transformMat4(farWorld, farPoint, invViewProj);
 
-        const up = vec3.create();
-        vec3.cross(up, forward, right);
+        // Perspective divide
+        vec4.scale(nearWorld, nearWorld, 1 / nearWorld[3]);
+        vec4.scale(farWorld, farWorld, 1 / farWorld[3]);
 
-        const rayDir = vec3.fromValues(
-            right[0] * rayViewX + up[0] * rayViewY + forward[0] * rayViewZ,
-            right[1] * rayViewX + up[1] * rayViewY + forward[1] * rayViewZ,
-            right[2] * rayViewX + up[2] * rayViewY + forward[2] * rayViewZ
-        );
-        vec3.normalize(rayDir, rayDir);
+        // Ray origin (camera position or near point)
+        const origin = this.getPosition();
+
+        // Ray direction (from near to far)
+        const direction = vec3.create();
+        vec3.subtract(direction, [farWorld[0], farWorld[1], farWorld[2]], [nearWorld[0], nearWorld[1], nearWorld[2]]);
+        vec3.normalize(direction, direction);
 
         return {
-            origin: pos,
-            direction: rayDir
+            origin: origin,
+            direction: direction
         };
     }
 
