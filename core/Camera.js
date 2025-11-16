@@ -162,7 +162,7 @@ export class Camera {
         vec3.normalize(right, right);
 
         const up = vec3.create();
-        vec3.cross(up, right, forward);
+        vec3.cross(up, forward, right);
 
         const rayDir = vec3.fromValues(
             right[0] * rayViewX + up[0] * rayViewY + forward[0] * rayViewZ,
