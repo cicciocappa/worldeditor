@@ -29,6 +29,9 @@ class StyloWorldEditor {
             // Create UI controller
             this.ui = new EditorUI(this.engine);
 
+            // Pass UI reference to engine
+            this.engine.setUI(this.ui);
+
             // Start render loop
             this.engine.start();
 
