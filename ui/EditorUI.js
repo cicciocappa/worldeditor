@@ -43,6 +43,9 @@ export class EditorUI {
         this.currentMouseX = 0;
         this.currentMouseY = 0;
 
+        // Preview object for placement mode
+        this.previewObject = null;
+
         this.setupEventListeners();
     }
 
@@ -57,6 +60,10 @@ export class EditorUI {
         // Object type selector
         this.elements.objectType.addEventListener('change', (e) => {
             this.engine.placementTool.setObjectType(e.target.value);
+            // Update preview object type if in place mode
+            if (this.mode === 'place' && this.previewObject) {
+                this.previewObject.type = e.target.value;
+            }
         });
 
         // Brush controls
@@ -144,6 +151,28 @@ export class EditorUI {
 
         // Update info text
         this.elements.modeInfo.textContent = `Mode: ${mode === 'brush' ? 'Brush' : 'Place'}`;
+
+        // Create preview object when entering place mode
+        if (mode === 'place') {
+            this.createPreviewObject();
+        } else {
+            this.previewObject = null;
+        }
+    }
+
+    /**
+     * Create a preview object for placement mode
+     */
+    createPreviewObject() {
+        const objectType = this.engine.placementTool.getObjectType();
+        this.previewObject = {
+            type: objectType,
+            position: [0, 0, 0],
+            rotation: 0,
+            scale: 1.0,
+            visible: false,
+            alpha: 0.5  // Semi-transparent
+        };
     }
 
     /**
@@ -192,8 +221,45 @@ export class EditorUI {
             }
         }
 
+        // Update preview object position in place mode
+        if (this.mode === 'place' && this.previewObject) {
+            this.updatePreviewPosition(e);
+        }
+
         this.lastMouseX = e.clientX;
         this.lastMouseY = e.clientY;
+    }
+
+    /**
+     * Update preview object position to follow mouse cursor
+     */
+    updatePreviewPosition(e) {
+        const rect = this.engine.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Cast ray from camera through mouse position
+        const ray = this.engine.camera.screenToRay(x, y);
+
+        // Find terrain intersection
+        const intersection = this.findTerrainIntersection(ray);
+
+        if (intersection) {
+            this.previewObject.position = intersection;
+            this.previewObject.visible = true;
+
+            // Add random rotation for preview
+            if (!this.previewObject.rotation) {
+                this.previewObject.rotation = Math.random() * Math.PI * 2;
+            }
+
+            // Add scale variation for preview
+            if (this.previewObject.scale === 1.0) {
+                this.previewObject.scale = 0.9 + Math.random() * 0.2;
+            }
+        } else {
+            this.previewObject.visible = false;
+        }
     }
 
     /**
@@ -241,23 +307,18 @@ export class EditorUI {
      * Place object at mouse cursor position
      */
     placeObjectAtMouse(e) {
-        const rect = this.engine.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        // Cast ray from camera through mouse position
-        const ray = this.engine.camera.screenToRay(x, y);
-
-        // Intersect with terrain
-        // We'll use an iterative approach to find terrain intersection
-        const intersection = this.findTerrainIntersection(ray);
-
-        if (intersection) {
+        // Use preview object position if available
+        if (this.previewObject && this.previewObject.visible) {
+            const pos = this.previewObject.position;
             this.engine.placementTool.placeObject(
                 this.engine.chunk,
-                intersection[0],
-                intersection[2]
+                pos[0],
+                pos[2]
             );
+
+            // Generate new random values for next preview
+            this.previewObject.rotation = Math.random() * Math.PI * 2;
+            this.previewObject.scale = 0.9 + Math.random() * 0.2;
         }
     }
 
@@ -335,5 +396,12 @@ export class EditorUI {
                 deltaTime
             );
         }
+    }
+
+    /**
+     * Get the current preview object (for rendering)
+     */
+    getPreviewObject() {
+        return this.previewObject;
     }
 }

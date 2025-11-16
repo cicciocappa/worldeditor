@@ -259,6 +259,12 @@ export class Engine {
         // 3. Render main geometry
         this.terrainRenderer.render(this.camera);
         this.objectRenderer.render(this.chunk, this.camera);
+
+        // 4. Render preview object (semi-transparent)
+        const previewObject = this.ui.getPreviewObject();
+        if (previewObject) {
+            this.objectRenderer.renderPreview(previewObject, this.camera);
+        }
     }
 
     /**

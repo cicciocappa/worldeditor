@@ -57,6 +57,7 @@ export class TerrainRenderer {
         this.uniforms.uModel = gl.getUniformLocation(this.program, 'uModel');
         this.uniforms.uColor = gl.getUniformLocation(this.program, 'uColor');
         this.uniforms.uLightDir = gl.getUniformLocation(this.program, 'uLightDir');
+        this.uniforms.uAlpha = gl.getUniformLocation(this.program, 'uAlpha');
 
         // Create VAO and buffers
         this.vao = gl.createVertexArray();
@@ -212,6 +213,7 @@ export class TerrainRenderer {
         gl.uniformMatrix4fv(this.uniforms.uModel, false, modelMatrix);
         gl.uniform3fv(this.uniforms.uColor, this.color);
         gl.uniform3f(this.uniforms.uLightDir, 0.5, 0.7, 0.3); // Directional light
+        gl.uniform1f(this.uniforms.uAlpha, 1.0); // Terrain is fully opaque
 
         // Draw
         gl.bindVertexArray(this.vao);
