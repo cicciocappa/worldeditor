@@ -43,6 +43,9 @@ export class Engine {
         this.terrainBrush = new TerrainBrush();
         this.placementTool = new PlacementTool();
 
+        // UI reference (set later)
+        this.ui = null;
+
         // Timing
         this.lastFrameTime = 0;
         this.deltaTime = 0;
@@ -261,9 +264,11 @@ export class Engine {
         this.objectRenderer.render(this.chunk, this.camera);
 
         // 4. Render preview object (semi-transparent)
-        const previewObject = this.ui.getPreviewObject();
-        if (previewObject) {
-            this.objectRenderer.renderPreview(previewObject, this.camera);
+        if (this.ui) {
+            const previewObject = this.ui.getPreviewObject();
+            if (previewObject) {
+                this.objectRenderer.renderPreview(previewObject, this.camera);
+            }
         }
     }
 
@@ -285,5 +290,12 @@ export class Engine {
 
         this.gl.clearColor(r, g, b, 1.0);
         console.log(`Clear color set to: ${hex} (${r.toFixed(2)}, ${g.toFixed(2)}, ${b.toFixed(2)})`);
+    }
+
+    /**
+     * Set UI reference (called after UI is created)
+     */
+    setUI(ui) {
+        this.ui = ui;
     }
 }
