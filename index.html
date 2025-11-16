@@ -78,6 +78,17 @@
 
     <canvas id="gl-canvas"></canvas>
 
+    <!-- Coordinate debug display (shown in Place mode) -->
+    <div id="coord-debug" style="display: none;">
+        <div><strong>📍 Placement Debug</strong></div>
+        <div>Chunk X: <span id="coord-chunk-x">-</span></div>
+        <div>Chunk Z: <span id="coord-chunk-z">-</span></div>
+        <div>World X: <span id="coord-world-x">-</span></div>
+        <div>World Z: <span id="coord-world-z">-</span></div>
+        <div>Height: <span id="coord-height">-</span></div>
+        <div>Preview: <span id="coord-preview-status">-</span></div>
+    </div>
+
     <!-- gl-matrix library for matrix operations -->
     <script src="https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/gl-matrix-min.js"></script>
 
