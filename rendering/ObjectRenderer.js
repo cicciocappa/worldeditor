@@ -7,6 +7,7 @@
 const { mat4 } = glMatrix;
 
 import { MeshGenerator } from '../utils/MeshGenerator.js';
+import { ModelLoader } from '../utils/ModelLoader.js';
 
 export class ObjectRenderer {
     constructor(gl) {
@@ -123,6 +124,86 @@ export class ObjectRenderer {
             normalBuffer,
             indexBuffer
         });
+    }
+
+    /**
+     * Load external model from file (OBJ, glTF, GLB)
+     * @param {string} name - Name to assign to this model
+     * @param {File} file - The model file to load
+     * @returns {Promise<void>}
+     */
+    async loadExternalModel(name, file) {
+        try {
+            console.log(`Loading external model: ${file.name} as "${name}"`);
+            const meshData = await ModelLoader.loadModel(file);
+
+            // Normalize mesh to fit in a unit cube
+            this.normalizeMesh(meshData);
+
+            // Load into GPU
+            this.loadMesh(name, meshData);
+
+            // Add color for this model type
+            this.objectColors[name] = [0.6, 0.6, 0.6]; // Default gray
+
+            console.log(`Model "${name}" loaded successfully:`, {
+                vertices: meshData.vertices.length / 3,
+                triangles: meshData.indices.length / 3
+            });
+
+            return name;
+        } catch (error) {
+            console.error(`Failed to load model ${file.name}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Normalize mesh vertices to fit in a unit cube centered at origin
+     * @param {Object} meshData - Mesh data with vertices array
+     */
+    normalizeMesh(meshData) {
+        const vertices = meshData.vertices;
+
+        // Find bounding box
+        let minX = Infinity, minY = Infinity, minZ = Infinity;
+        let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+
+        for (let i = 0; i < vertices.length; i += 3) {
+            minX = Math.min(minX, vertices[i]);
+            minY = Math.min(minY, vertices[i + 1]);
+            minZ = Math.min(minZ, vertices[i + 2]);
+            maxX = Math.max(maxX, vertices[i]);
+            maxY = Math.max(maxY, vertices[i + 1]);
+            maxZ = Math.max(maxZ, vertices[i + 2]);
+        }
+
+        // Calculate center and size
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+        const centerZ = (minZ + maxZ) / 2;
+
+        const sizeX = maxX - minX;
+        const sizeY = maxY - minY;
+        const sizeZ = maxZ - minZ;
+        const maxSize = Math.max(sizeX, sizeY, sizeZ);
+
+        // Normalize to unit cube
+        const scale = maxSize > 0 ? 2.0 / maxSize : 1.0;
+
+        for (let i = 0; i < vertices.length; i += 3) {
+            vertices[i] = (vertices[i] - centerX) * scale;
+            vertices[i + 1] = (vertices[i + 1] - centerY) * scale;
+            vertices[i + 2] = (vertices[i + 2] - centerZ) * scale;
+        }
+    }
+
+    /**
+     * Get list of all available model types
+     * @returns {Array<string>} Array of model type names
+     */
+    getAvailableModels() {
+        return Array.from(this.meshes.keys());
     }
 
     /**
