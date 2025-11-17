@@ -3,6 +3,9 @@
  * Handles WebGL 2 initialization, render loop, and coordination of all systems
  */
 
+// gl-matrix is loaded globally via CDN
+const { mat4 } = glMatrix;
+
 import { Camera } from './Camera.js';
 import { Chunk } from '../scene/Chunk.js';
 import { TerrainRenderer } from '../rendering/TerrainRenderer.js';
@@ -256,7 +259,10 @@ export class Engine {
         this.gridRenderer.render(this.camera);
 
         // 2. Render outlines (back faces with expanded geometry)
-        this.outlineRenderer.render(this.terrainRenderer.getBuffers(), this.camera);
+        // Terrain outline needs the same translation as terrain
+        const terrainModelMatrix = mat4.create();
+        mat4.translate(terrainModelMatrix, terrainModelMatrix, [-32, 0, -32]);
+        this.outlineRenderer.render(this.terrainRenderer.getBuffers(), this.camera, terrainModelMatrix);
         this.objectRenderer.renderOutlines(this.chunk, this.camera, this.outlineRenderer);
 
         // 3. Render main geometry
