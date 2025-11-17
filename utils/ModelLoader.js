@@ -464,13 +464,40 @@ export const ModelLoader = {
             } else {
                 // External buffer file
                 const bufferFileName = buffer.uri;
-                if (fileMap && fileMap.has(bufferFileName)) {
-                    console.log(`Loading external buffer: ${bufferFileName}`);
-                    const bufferFile = fileMap.get(bufferFileName);
+                let bufferFile = null;
+
+                if (fileMap) {
+                    // Try exact match first
+                    if (fileMap.has(bufferFileName)) {
+                        bufferFile = fileMap.get(bufferFileName);
+                        console.log(`Loading external buffer: ${bufferFileName}`);
+                    } else {
+                        // Extract base filename (remove any directory path)
+                        const baseName = bufferFileName.split('/').pop().split('\\').pop();
+
+                        // Try with base name
+                        if (fileMap.has(baseName)) {
+                            bufferFile = fileMap.get(baseName);
+                            console.log(`Loading external buffer (using base name): ${baseName}`);
+                        } else {
+                            // Try to find any file with matching base name
+                            for (const [fileName, file] of fileMap.entries()) {
+                                const fileBaseName = fileName.split('/').pop().split('\\').pop();
+                                if (fileBaseName === baseName) {
+                                    bufferFile = file;
+                                    console.log(`Loading external buffer (found match): ${fileName}`);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (bufferFile) {
                     const arrayBuffer = await bufferFile.arrayBuffer();
                     data = new Uint8Array(arrayBuffer);
                 } else {
-                    throw new Error(`External glTF buffer not found: ${bufferFileName}`);
+                    throw new Error(`External glTF buffer not found: ${bufferFileName}. Available files: ${fileMap ? Array.from(fileMap.keys()).join(', ') : 'none'}`);
                 }
             }
         } else {
@@ -585,15 +612,41 @@ export const ModelLoader = {
             } else {
                 // External image file
                 const imageFileName = image.uri;
-                if (fileMap && fileMap.has(imageFileName)) {
-                    const imageFile = fileMap.get(imageFileName);
+                let imageFile = null;
+
+                if (fileMap) {
+                    // Try exact match first
+                    if (fileMap.has(imageFileName)) {
+                        imageFile = fileMap.get(imageFileName);
+                    } else {
+                        // Extract base filename (remove any directory path)
+                        const baseName = imageFileName.split('/').pop().split('\\').pop();
+
+                        // Try with base name
+                        if (fileMap.has(baseName)) {
+                            imageFile = fileMap.get(baseName);
+                        } else {
+                            // Try to find any file with matching base name
+                            for (const [fileName, file] of fileMap.entries()) {
+                                const fileBaseName = fileName.split('/').pop().split('\\').pop();
+                                if (fileBaseName === baseName) {
+                                    imageFile = file;
+                                    console.log(`Loading external texture (found match): ${fileName}`);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (imageFile) {
                     return {
                         name: image.name || imageFileName,
                         file: imageFile,
                         url: URL.createObjectURL(imageFile)
                     };
                 } else {
-                    console.warn(`External texture not found: ${imageFileName}`);
+                    console.warn(`External texture not found: ${imageFileName}. Available files: ${fileMap ? Array.from(fileMap.keys()).join(', ') : 'none'}`);
                     return null;
                 }
             }
