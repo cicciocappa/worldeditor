@@ -56,6 +56,8 @@ export class ObjectRenderer {
         this.uniforms.uColor = gl.getUniformLocation(this.program, 'uColor');
         this.uniforms.uLightDir = gl.getUniformLocation(this.program, 'uLightDir');
         this.uniforms.uAlpha = gl.getUniformLocation(this.program, 'uAlpha');
+        this.uniforms.uLightSpaceMatrix = gl.getUniformLocation(this.program, 'uLightSpaceMatrix');
+        this.uniforms.uShadowMap = gl.getUniformLocation(this.program, 'uShadowMap');
 
         // Load object meshes
         this.loadMesh('tree_pine', MeshGenerator.generatePineTree());
@@ -126,7 +128,7 @@ export class ObjectRenderer {
     /**
      * Render all objects in the chunk
      */
-    render(chunk, camera, lightDir = [0.5, 0.7, 0.3]) {
+    render(chunk, camera, lightDir = [0.5, 0.7, 0.3], lightSpaceMatrix = null) {
         if (!this.program) return;
 
         const gl = this.gl;
@@ -134,14 +136,14 @@ export class ObjectRenderer {
 
         // Render each object
         for (const obj of chunk.objects) {
-            this.renderObject(obj, camera, 1.0, lightDir);
+            this.renderObject(obj, camera, 1.0, lightDir, lightSpaceMatrix);
         }
     }
 
     /**
      * Render a single object
      */
-    renderObject(obj, camera, alpha = 1.0, lightDir = [0.5, 0.7, 0.3]) {
+    renderObject(obj, camera, alpha = 1.0, lightDir = [0.5, 0.7, 0.3], lightSpaceMatrix = null) {
         const mesh = this.meshes.get(obj.type);
         if (!mesh) {
             console.warn('Unknown object type:', obj.type);
@@ -183,6 +185,13 @@ export class ObjectRenderer {
         gl.uniform3fv(this.uniforms.uLightDir, lightDir);
         gl.uniform1f(this.uniforms.uAlpha, alpha);
 
+        // Shadow mapping uniforms
+        if (lightSpaceMatrix) {
+            gl.uniformMatrix4fv(this.uniforms.uLightSpaceMatrix, false, lightSpaceMatrix);
+        }
+        // Shadow map is bound externally before rendering
+        gl.uniform1i(this.uniforms.uShadowMap, 0); // Texture unit 0
+
         // Draw
         gl.bindVertexArray(mesh.vao);
         gl.drawElements(gl.TRIANGLES, mesh.indexCount, gl.UNSIGNED_SHORT, 0);
@@ -197,11 +206,11 @@ export class ObjectRenderer {
     /**
      * Render preview object (semi-transparent)
      */
-    renderPreview(previewObj, camera, lightDir = [0.5, 0.7, 0.3]) {
+    renderPreview(previewObj, camera, lightDir = [0.5, 0.7, 0.3], lightSpaceMatrix = null) {
         if (!previewObj || !previewObj.visible) return;
 
         const alpha = previewObj.alpha || 0.5;
-        this.renderObject(previewObj, camera, alpha, lightDir);
+        this.renderObject(previewObj, camera, alpha, lightDir, lightSpaceMatrix);
     }
 
     /**

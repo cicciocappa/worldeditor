@@ -58,6 +58,8 @@ export class TerrainRenderer {
         this.uniforms.uColor = gl.getUniformLocation(this.program, 'uColor');
         this.uniforms.uLightDir = gl.getUniformLocation(this.program, 'uLightDir');
         this.uniforms.uAlpha = gl.getUniformLocation(this.program, 'uAlpha');
+        this.uniforms.uLightSpaceMatrix = gl.getUniformLocation(this.program, 'uLightSpaceMatrix');
+        this.uniforms.uShadowMap = gl.getUniformLocation(this.program, 'uShadowMap');
 
         // Create VAO and buffers
         this.vao = gl.createVertexArray();
@@ -191,7 +193,7 @@ export class TerrainRenderer {
     /**
      * Render the terrain
      */
-    render(camera, lightDir = [0.5, 0.7, 0.3]) {
+    render(camera, lightDir = [0.5, 0.7, 0.3], lightSpaceMatrix = null) {
         if (!this.program || this.indexCount === 0) {
             console.warn('Terrain render skipped - program:', !!this.program, 'indexCount:', this.indexCount);
             return;
@@ -214,6 +216,13 @@ export class TerrainRenderer {
         gl.uniform3fv(this.uniforms.uColor, this.color);
         gl.uniform3fv(this.uniforms.uLightDir, lightDir); // Directional light from Engine
         gl.uniform1f(this.uniforms.uAlpha, 1.0); // Terrain is fully opaque
+
+        // Shadow mapping uniforms
+        if (lightSpaceMatrix) {
+            gl.uniformMatrix4fv(this.uniforms.uLightSpaceMatrix, false, lightSpaceMatrix);
+        }
+        // Shadow map is bound externally before rendering
+        gl.uniform1i(this.uniforms.uShadowMap, 0); // Texture unit 0
 
         // Draw
         gl.bindVertexArray(this.vao);
