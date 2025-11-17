@@ -10,8 +10,8 @@ import { Camera } from './Camera.js';
 import { Chunk } from '../scene/Chunk.js';
 import { TerrainRenderer } from '../rendering/TerrainRenderer.js';
 import { ObjectRenderer } from '../rendering/ObjectRenderer.js';
-import { OutlineRenderer } from '../rendering/OutlineRenderer.js';
 import { GridRenderer } from '../rendering/GridRenderer.js';
+import { ShadowRenderer } from '../rendering/ShadowRenderer.js';
 import { TerrainBrush } from '../tools/TerrainBrush.js';
 import { PlacementTool } from '../tools/PlacementTool.js';
 
@@ -39,8 +39,12 @@ export class Engine {
         // Renderers
         this.terrainRenderer = null;
         this.objectRenderer = null;
-        this.outlineRenderer = null;
         this.gridRenderer = null;
+        this.shadowRenderer = null;
+
+        // Light direction (azimuth and elevation in degrees)
+        this.lightAzimuth = 45;     // 0-360 degrees (compass direction)
+        this.lightElevation = 45;   // 10-80 degrees (angle above horizon)
 
         // Tools
         this.terrainBrush = new TerrainBrush();
@@ -131,10 +135,10 @@ export class Engine {
         // Load shaders
         const terrainVert = await this.loadShader('shaders/terrain.vert');
         const terrainFrag = await this.loadShader('shaders/terrain.frag');
-        const outlineVert = await this.loadShader('shaders/outline.vert');
-        const outlineFrag = await this.loadShader('shaders/outline.frag');
         const gridVert = await this.loadShader('shaders/grid.vert');
         const gridFrag = await this.loadShader('shaders/grid.frag');
+        const shadowVert = await this.loadShader('shaders/shadow.vert');
+        const shadowFrag = await this.loadShader('shaders/shadow.frag');
 
         // Initialize renderers
         this.terrainRenderer = new TerrainRenderer(this.gl);
@@ -143,11 +147,11 @@ export class Engine {
         this.objectRenderer = new ObjectRenderer(this.gl);
         await this.objectRenderer.init(terrainVert, terrainFrag);
 
-        this.outlineRenderer = new OutlineRenderer(this.gl);
-        await this.outlineRenderer.init(outlineVert, outlineFrag);
-
         this.gridRenderer = new GridRenderer(this.gl);
         await this.gridRenderer.init(gridVert, gridFrag);
+
+        this.shadowRenderer = new ShadowRenderer(this.gl);
+        await this.shadowRenderer.init(shadowVert, shadowFrag);
 
         // Generate initial terrain mesh
         this.terrainRenderer.generateMesh(this.chunk);
@@ -252,29 +256,126 @@ export class Engine {
     renderScene() {
         const gl = this.gl;
 
-        // Clear buffers
+        // Get current light direction
+        const lightDir = this.getLightDirection();
+
+        // Update light space matrix for shadow mapping
+        this.shadowRenderer.updateLightSpaceMatrix(lightDir);
+
+        // === PASS 1: Render shadow map from light's perspective ===
+        this.renderShadowMap();
+
+        // === PASS 2: Render scene normally with shadows ===
+
+        // Bind shadow map texture for sampling
+        this.shadowRenderer.bindShadowMap(0);
+
+        // Clear screen buffers
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        // Get light space matrix
+        const lightSpaceMatrix = this.shadowRenderer.getLightSpaceMatrix();
 
         // 1. Render grid first (as reference)
         this.gridRenderer.render(this.camera);
 
-        // 2. Render outlines (back faces with expanded geometry)
-        // Terrain outline needs the same translation as terrain
-        const terrainModelMatrix = mat4.create();
-        mat4.translate(terrainModelMatrix, terrainModelMatrix, [-32, 0, -32]);
-        this.outlineRenderer.render(this.terrainRenderer.getBuffers(), this.camera, terrainModelMatrix);
-        this.objectRenderer.renderOutlines(this.chunk, this.camera, this.outlineRenderer);
+        // 2. Render main geometry with dynamic lighting and shadows
+        this.terrainRenderer.render(this.camera, lightDir, lightSpaceMatrix);
+        this.objectRenderer.render(this.chunk, this.camera, lightDir, lightSpaceMatrix);
 
-        // 3. Render main geometry
-        this.terrainRenderer.render(this.camera);
-        this.objectRenderer.render(this.chunk, this.camera);
-
-        // 4. Render preview object (semi-transparent)
+        // 3. Render preview object (semi-transparent)
         if (this.ui) {
             const previewObject = this.ui.getPreviewObject();
             if (previewObject) {
-                this.objectRenderer.renderPreview(previewObject, this.camera);
+                this.objectRenderer.renderPreview(previewObject, this.camera, lightDir, lightSpaceMatrix);
             }
+        }
+    }
+
+    /**
+     * Render shadow map (first pass)
+     */
+    renderShadowMap() {
+        // Begin shadow pass
+        this.shadowRenderer.beginShadowPass();
+
+        // Render terrain for shadow map
+        this.renderTerrainForShadowMap();
+
+        // Render objects for shadow map
+        this.renderObjectsForShadowMap();
+
+        // End shadow pass
+        this.shadowRenderer.endShadowPass(this.canvas);
+    }
+
+    /**
+     * Render terrain to shadow map
+     */
+    renderTerrainForShadowMap() {
+        const gl = this.gl;
+        const terrainBuffers = this.terrainRenderer.getBuffers();
+
+        // Translate terrain to match main rendering
+        const modelMatrix = mat4.create();
+        mat4.translate(modelMatrix, modelMatrix, [-32, 0, -32]);
+
+        // Combine with light space matrix
+        const lightSpaceMatrix = this.shadowRenderer.getLightSpaceMatrix();
+        const finalMatrix = mat4.create();
+        mat4.multiply(finalMatrix, lightSpaceMatrix, modelMatrix);
+
+        // Set matrix uniform
+        gl.uniformMatrix4fv(
+            this.shadowRenderer.uniforms.uLightSpaceMatrix,
+            false,
+            finalMatrix
+        );
+
+        // Draw terrain
+        gl.bindVertexArray(terrainBuffers.vao);
+        gl.drawElements(gl.TRIANGLES, terrainBuffers.indexCount, gl.UNSIGNED_SHORT, 0);
+        gl.bindVertexArray(null);
+    }
+
+    /**
+     * Render objects to shadow map
+     */
+    renderObjectsForShadowMap() {
+        const gl = this.gl;
+        const lightSpaceMatrix = this.shadowRenderer.getLightSpaceMatrix();
+
+        for (const obj of this.chunk.objects) {
+            const mesh = this.objectRenderer.getMesh(obj.type);
+            if (!mesh) continue;
+
+            // Build model matrix (same as main rendering)
+            const worldPos = [
+                obj.position[0] - 32,
+                obj.position[1],
+                obj.position[2] - 32
+            ];
+
+            const modelMatrix = mat4.create();
+            mat4.translate(modelMatrix, modelMatrix, worldPos);
+            mat4.rotateY(modelMatrix, modelMatrix, obj.rotation);
+            mat4.scale(modelMatrix, modelMatrix, [obj.scale, obj.scale, obj.scale]);
+
+            // Combine with light space matrix
+            const finalMatrix = mat4.create();
+            mat4.multiply(finalMatrix, lightSpaceMatrix, modelMatrix);
+
+            // Set matrix uniform
+            gl.uniformMatrix4fv(
+                this.shadowRenderer.uniforms.uLightSpaceMatrix,
+                false,
+                finalMatrix
+            );
+
+            // Draw object
+            gl.bindVertexArray(mesh.vao);
+            gl.drawElements(gl.TRIANGLES, mesh.indexCount, gl.UNSIGNED_SHORT, 0);
+            gl.bindVertexArray(null);
         }
     }
 
@@ -303,5 +404,34 @@ export class Engine {
      */
     setUI(ui) {
         this.ui = ui;
+    }
+
+    /**
+     * Set light direction from azimuth and elevation angles
+     * @param {number} azimuth - Horizontal angle in degrees (0-360)
+     * @param {number} elevation - Vertical angle in degrees (10-80)
+     */
+    setLightDirection(azimuth, elevation) {
+        this.lightAzimuth = azimuth;
+        this.lightElevation = elevation;
+    }
+
+    /**
+     * Get light direction vector from current azimuth/elevation
+     * @returns {Array} Normalized direction vector [x, y, z]
+     */
+    getLightDirection() {
+        // Convert degrees to radians
+        const azimuthRad = (this.lightAzimuth * Math.PI) / 180;
+        const elevationRad = (this.lightElevation * Math.PI) / 180;
+
+        // Calculate direction vector
+        // Azimuth 0 = North (+Z), 90 = East (+X), 180 = South (-Z), 270 = West (-X)
+        // Elevation is angle above horizon
+        const x = Math.cos(elevationRad) * Math.sin(azimuthRad);
+        const y = Math.sin(elevationRad);
+        const z = Math.cos(elevationRad) * Math.cos(azimuthRad);
+
+        return [x, y, z];
     }
 }
