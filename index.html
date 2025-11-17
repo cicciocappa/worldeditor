@@ -64,6 +64,18 @@
             </select>
         </div>
 
+        <div class="tool-group">
+            <label for="light-azimuth">Sun Azimuth:</label>
+            <input type="range" id="light-azimuth" min="0" max="360" step="5" value="45">
+            <span id="light-azimuth-value">45°</span>
+        </div>
+
+        <div class="tool-group">
+            <label for="light-elevation">Sun Elevation:</label>
+            <input type="range" id="light-elevation" min="10" max="80" step="5" value="45">
+            <span id="light-elevation-value">45°</span>
+        </div>
+
         <div class="tool-group file-ops">
             <button id="save" class="file-btn" title="Save Chunk to JSON">💾 Save</button>
             <button id="load" class="file-btn" title="Load Chunk from JSON">📂 Load</button>
