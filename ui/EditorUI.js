@@ -37,7 +37,12 @@ export class EditorUI {
             coordWorldX: document.getElementById('coord-world-x'),
             coordWorldZ: document.getElementById('coord-world-z'),
             coordHeight: document.getElementById('coord-height'),
-            coordPreviewStatus: document.getElementById('coord-preview-status')
+            coordPreviewStatus: document.getElementById('coord-preview-status'),
+            // Light direction controls
+            lightAzimuth: document.getElementById('light-azimuth'),
+            lightAzimuthValue: document.getElementById('light-azimuth-value'),
+            lightElevation: document.getElementById('light-elevation'),
+            lightElevationValue: document.getElementById('light-elevation-value')
         };
 
         // Current mode
@@ -106,6 +111,19 @@ export class EditorUI {
 
         this.elements.gridColor.addEventListener('change', (e) => {
             this.engine.gridRenderer.setColorScheme(e.target.value);
+        });
+
+        // Light direction controls
+        this.elements.lightAzimuth.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            this.elements.lightAzimuthValue.textContent = `${Math.round(value)}°`;
+            this.engine.setLightDirection(value, this.engine.lightElevation);
+        });
+
+        this.elements.lightElevation.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            this.elements.lightElevationValue.textContent = `${Math.round(value)}°`;
+            this.engine.setLightDirection(this.engine.lightAzimuth, value);
         });
 
         // File operations
