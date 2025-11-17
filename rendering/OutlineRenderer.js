@@ -88,6 +88,10 @@ export class OutlineRenderer {
         gl.uniform1f(this.uniforms.uOutlineWidth, this.outlineWidth);
         gl.uniform3fv(this.uniforms.uOutlineColor, this.outlineColor);
 
+        // Disable depth writing so outline doesn't block the main geometry
+        // but keep depth testing enabled so outline respects depth
+        gl.depthMask(false);
+
         // Render with front-face culling (show only back faces)
         // This creates the outline effect
         gl.enable(gl.CULL_FACE);
@@ -98,8 +102,9 @@ export class OutlineRenderer {
         gl.drawElements(gl.TRIANGLES, buffers.indexCount, gl.UNSIGNED_SHORT, 0);
         gl.bindVertexArray(null);
 
-        // Restore normal culling
+        // Restore normal culling and depth writing
         gl.cullFace(gl.BACK);
+        gl.depthMask(true);
     }
 
     /**
