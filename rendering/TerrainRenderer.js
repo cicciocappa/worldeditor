@@ -191,7 +191,7 @@ export class TerrainRenderer {
     /**
      * Render the terrain
      */
-    render(camera) {
+    render(camera, lightDir = [0.5, 0.7, 0.3]) {
         if (!this.program || this.indexCount === 0) {
             console.warn('Terrain render skipped - program:', !!this.program, 'indexCount:', this.indexCount);
             return;
@@ -212,7 +212,7 @@ export class TerrainRenderer {
         gl.uniformMatrix4fv(this.uniforms.uModelViewProjection, false, mvpMatrix);
         gl.uniformMatrix4fv(this.uniforms.uModel, false, modelMatrix);
         gl.uniform3fv(this.uniforms.uColor, this.color);
-        gl.uniform3f(this.uniforms.uLightDir, 0.5, 0.7, 0.3); // Directional light
+        gl.uniform3fv(this.uniforms.uLightDir, lightDir); // Directional light from Engine
         gl.uniform1f(this.uniforms.uAlpha, 1.0); // Terrain is fully opaque
 
         // Draw

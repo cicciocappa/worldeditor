@@ -252,18 +252,21 @@ export class Engine {
         // Clear buffers
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+        // Get current light direction
+        const lightDir = this.getLightDirection();
+
         // 1. Render grid first (as reference)
         this.gridRenderer.render(this.camera);
 
-        // 2. Render main geometry
-        this.terrainRenderer.render(this.camera);
-        this.objectRenderer.render(this.chunk, this.camera);
+        // 2. Render main geometry with dynamic lighting
+        this.terrainRenderer.render(this.camera, lightDir);
+        this.objectRenderer.render(this.chunk, this.camera, lightDir);
 
         // 3. Render preview object (semi-transparent)
         if (this.ui) {
             const previewObject = this.ui.getPreviewObject();
             if (previewObject) {
-                this.objectRenderer.renderPreview(previewObject, this.camera);
+                this.objectRenderer.renderPreview(previewObject, this.camera, lightDir);
             }
         }
     }

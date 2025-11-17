@@ -126,7 +126,7 @@ export class ObjectRenderer {
     /**
      * Render all objects in the chunk
      */
-    render(chunk, camera) {
+    render(chunk, camera, lightDir = [0.5, 0.7, 0.3]) {
         if (!this.program) return;
 
         const gl = this.gl;
@@ -134,14 +134,14 @@ export class ObjectRenderer {
 
         // Render each object
         for (const obj of chunk.objects) {
-            this.renderObject(obj, camera);
+            this.renderObject(obj, camera, 1.0, lightDir);
         }
     }
 
     /**
      * Render a single object
      */
-    renderObject(obj, camera, alpha = 1.0) {
+    renderObject(obj, camera, alpha = 1.0, lightDir = [0.5, 0.7, 0.3]) {
         const mesh = this.meshes.get(obj.type);
         if (!mesh) {
             console.warn('Unknown object type:', obj.type);
@@ -180,7 +180,7 @@ export class ObjectRenderer {
 
         const color = this.objectColors[obj.type] || [0.5, 0.5, 0.5];
         gl.uniform3fv(this.uniforms.uColor, color);
-        gl.uniform3f(this.uniforms.uLightDir, 0.5, 0.7, 0.3);
+        gl.uniform3fv(this.uniforms.uLightDir, lightDir);
         gl.uniform1f(this.uniforms.uAlpha, alpha);
 
         // Draw
@@ -197,11 +197,11 @@ export class ObjectRenderer {
     /**
      * Render preview object (semi-transparent)
      */
-    renderPreview(previewObj, camera) {
+    renderPreview(previewObj, camera, lightDir = [0.5, 0.7, 0.3]) {
         if (!previewObj || !previewObj.visible) return;
 
         const alpha = previewObj.alpha || 0.5;
-        this.renderObject(previewObj, camera, alpha);
+        this.renderObject(previewObj, camera, alpha, lightDir);
     }
 
     /**
