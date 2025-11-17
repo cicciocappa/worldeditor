@@ -177,6 +177,10 @@ export class ShadowRenderer {
         gl.enable(gl.DEPTH_TEST);
         gl.colorMask(false, false, false, false);
 
+        // Use front-face culling to reduce shadow acne and peter panning
+        gl.enable(gl.CULL_FACE);
+        gl.cullFace(gl.FRONT);
+
         // Set light space matrix uniform
         gl.uniformMatrix4fv(this.uniforms.uLightSpaceMatrix, false, this.lightSpaceMatrix);
     }
@@ -193,6 +197,9 @@ export class ShadowRenderer {
 
         // Re-enable color writes
         gl.colorMask(true, true, true, true);
+
+        // Restore back-face culling for normal rendering
+        gl.cullFace(gl.BACK);
     }
 
     /**

@@ -31,11 +31,13 @@ export const MeshGenerator = {
             normals.push(x, 0, z);
         }
 
-        // Trunk indices
+        // Trunk indices (correct winding order for CCW front faces)
         for (let i = 0; i < trunkSegments; i++) {
             const base = i * 2;
-            indices.push(base, base + 1, base + 2);
-            indices.push(base + 1, base + 3, base + 2);
+            // Triangle 1: bottom_i, bottom_i+1, top_i
+            indices.push(base, base + 2, base + 1);
+            // Triangle 2: top_i, bottom_i+1, top_i+1
+            indices.push(base + 1, base + 2, base + 3);
         }
 
         // Foliage (cone)
@@ -58,9 +60,9 @@ export const MeshGenerator = {
             normals.push(x, 0.5, z); // Approximate cone normal
         }
 
-        // Cone indices
+        // Cone indices (reversed winding order for correct front-face culling)
         for (let i = 0; i < coneSegments; i++) {
-            indices.push(coneBase, coneBase + i + 1, coneBase + i + 2);
+            indices.push(coneBase, coneBase + i + 2, coneBase + i + 1);
         }
 
         return {

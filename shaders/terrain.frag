@@ -33,8 +33,10 @@ float calculateShadow() {
     // Get current fragment depth
     float currentDepth = projCoords.z;
 
-    // Bias to prevent shadow acne
-    float bias = 0.005;
+    // Dynamic bias based on surface angle to light (reduces shadow acne)
+    vec3 N = normalize(vNormal);
+    float cosTheta = max(dot(N, uLightDir), 0.0);
+    float bias = max(0.002 * (1.0 - cosTheta), 0.001);
 
     // PCF (Percentage Closer Filtering) for softer shadows
     float shadow = 0.0;
