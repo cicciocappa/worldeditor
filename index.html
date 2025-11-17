@@ -20,12 +20,10 @@
         <div class="tool-group">
             <label for="object-type">Object:</label>
             <select id="object-type">
-                <option value="tree_pine">🌲 Pine Tree</option>
-                <option value="rock_large">🪨 Large Rock</option>
-                <option value="bush_small">🌿 Small Bush</option>
+                <option value="" disabled selected>Load a 3D model...</option>
             </select>
-            <button id="load-model" class="small-btn" title="Load 3D Model (OBJ, glTF, GLB)">📦</button>
-            <input type="file" id="model-file-input" accept=".obj,.gltf,.glb" style="display: none;">
+            <button id="load-model" class="small-btn" title="Load 3D Model (OBJ+MTL+Textures, glTF, GLB)">📦 Load Model</button>
+            <input type="file" id="model-file-input" accept=".obj,.mtl,.gltf,.glb,.bin,.png,.jpg,.jpeg" multiple style="display: none;">
         </div>
 
         <div class="tool-group">

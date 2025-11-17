@@ -135,6 +135,8 @@ export class Engine {
         // Load shaders
         const terrainVert = await this.loadShader('shaders/terrain.vert');
         const terrainFrag = await this.loadShader('shaders/terrain.frag');
+        const objectVert = await this.loadShader('shaders/object.vert');
+        const objectFrag = await this.loadShader('shaders/object.frag');
         const gridVert = await this.loadShader('shaders/grid.vert');
         const gridFrag = await this.loadShader('shaders/grid.frag');
         const shadowVert = await this.loadShader('shaders/shadow.vert');
@@ -145,7 +147,7 @@ export class Engine {
         await this.terrainRenderer.init(terrainVert, terrainFrag);
 
         this.objectRenderer = new ObjectRenderer(this.gl);
-        await this.objectRenderer.init(terrainVert, terrainFrag);
+        await this.objectRenderer.init(objectVert, objectFrag);
 
         this.gridRenderer = new GridRenderer(this.gl);
         await this.gridRenderer.init(gridVert, gridFrag);

@@ -86,20 +86,30 @@ export class EditorUI {
             this.elements.modelFileInput.click();
         });
 
-        // Model file input handler
+        // Model file input handler (supports multiple files: OBJ+MTL+textures, glTF+bin, etc.)
         this.elements.modelFileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
 
             try {
-                console.log('Loading model file:', file.name);
+                console.log(`Loading ${files.length} file(s):`, files.map(f => f.name).join(', '));
+
+                // Find the main model file (OBJ, GLTF, or GLB)
+                const mainFile = files.find(f => {
+                    const ext = f.name.split('.').pop().toLowerCase();
+                    return ext === 'obj' || ext === 'gltf' || ext === 'glb';
+                });
+
+                if (!mainFile) {
+                    throw new Error('No model file found. Please select an OBJ, glTF, or GLB file.');
+                }
 
                 // Generate unique name for this model
-                const baseName = file.name.split('.')[0];
+                const baseName = mainFile.name.split('.')[0];
                 const modelName = `custom_${baseName}_${Date.now()}`;
 
-                // Load model into ObjectRenderer
-                await this.engine.objectRenderer.loadExternalModel(modelName, file);
+                // Load model into ObjectRenderer (pass all files for MTL, textures, etc.)
+                await this.engine.objectRenderer.loadExternalModel(modelName, files);
 
                 // Add to dropdown
                 const option = document.createElement('option');
@@ -117,7 +127,7 @@ export class EditorUI {
                 }
 
                 console.log(`Model "${baseName}" loaded and ready to place!`);
-                alert(`Model "${baseName}" loaded successfully! You can now place it in the scene.`);
+                alert(`Model "${baseName}" loaded successfully with ${files.length} file(s)! You can now place it in the scene.`);
             } catch (error) {
                 console.error('Failed to load model:', error);
                 alert(`Failed to load model: ${error.message}`);
