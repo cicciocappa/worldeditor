@@ -14,6 +14,8 @@ export class EditorUI {
             brushMode: document.getElementById('brush-mode'),
             placeMode: document.getElementById('place-mode'),
             objectType: document.getElementById('object-type'),
+            loadModel: document.getElementById('load-model'),
+            modelFileInput: document.getElementById('model-file-input'),
             brushStrength: document.getElementById('brush-strength'),
             brushStrengthValue: document.getElementById('brush-strength-value'),
             brushRadius: document.getElementById('brush-radius'),
@@ -77,6 +79,52 @@ export class EditorUI {
             if (this.mode === 'place' && this.previewObject) {
                 this.previewObject.type = e.target.value;
             }
+        });
+
+        // Load external model button
+        this.elements.loadModel.addEventListener('click', () => {
+            this.elements.modelFileInput.click();
+        });
+
+        // Model file input handler
+        this.elements.modelFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                console.log('Loading model file:', file.name);
+
+                // Generate unique name for this model
+                const baseName = file.name.split('.')[0];
+                const modelName = `custom_${baseName}_${Date.now()}`;
+
+                // Load model into ObjectRenderer
+                await this.engine.objectRenderer.loadExternalModel(modelName, file);
+
+                // Add to dropdown
+                const option = document.createElement('option');
+                option.value = modelName;
+                option.textContent = `📦 ${baseName}`;
+                this.elements.objectType.appendChild(option);
+
+                // Select the new model
+                this.elements.objectType.value = modelName;
+                this.engine.placementTool.setObjectType(modelName);
+
+                // Update preview if in place mode
+                if (this.mode === 'place' && this.previewObject) {
+                    this.previewObject.type = modelName;
+                }
+
+                console.log(`Model "${baseName}" loaded and ready to place!`);
+                alert(`Model "${baseName}" loaded successfully! You can now place it in the scene.`);
+            } catch (error) {
+                console.error('Failed to load model:', error);
+                alert(`Failed to load model: ${error.message}`);
+            }
+
+            // Reset file input
+            e.target.value = '';
         });
 
         // Brush controls

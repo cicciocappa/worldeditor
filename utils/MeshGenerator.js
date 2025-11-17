@@ -60,9 +60,9 @@ export const MeshGenerator = {
             normals.push(x, 0.5, z); // Approximate cone normal
         }
 
-        // Cone indices (reversed winding order for correct front-face culling)
+        // Cone indices (CCW winding order for correct front-face culling)
         for (let i = 0; i < coneSegments; i++) {
-            indices.push(coneBase, coneBase + i + 2, coneBase + i + 1);
+            indices.push(coneBase, coneBase + i + 1, coneBase + i + 2);
         }
 
         return {
